@@ -17,9 +17,7 @@
       private lastAccess: Date,
       name: string,
       gender: Gender,
-      birthday: Dateaa
-
-        atar
+      birthday: Date
     ) {
       super(name, gender, birthday);
       this.lastAccess = new Date();
