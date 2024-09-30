@@ -18,6 +18,8 @@
       name: string,
       gender: Gender,
       birthday: Dateaa
+
+        atar
     ) {
       super(name, gender, birthday);
       this.lastAccess = new Date();
@@ -56,3 +58,4 @@
 
   console.log({ userSettings });
 })();
+rsasa
