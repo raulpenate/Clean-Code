@@ -1,5 +1,6 @@
 (() => {
   //No applying unique responsibility principle
+
   type Gender = "M" | "F";
 
   class Person {
