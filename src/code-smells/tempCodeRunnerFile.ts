@@ -1,0 +1,1 @@
+    interface UserSettingsProps extends Person, User, Settings{}
