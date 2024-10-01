@@ -47,7 +47,7 @@
   interface SettingsProps {
     workingDirectory: string;
     lastOpenFolder: string;
-  }a
+  }
 
   interface UserSettingsProps extends PersonProps, UserProps, SettingsProps {}
 
