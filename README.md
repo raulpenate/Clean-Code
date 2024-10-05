@@ -61,7 +61,7 @@ classDiagram
 
 You can see where that now `CartBloc` is being responsable to handle `onAddToCart()` and we even rename it to `addToCart()` to a single name since it's easier to understand under that context. Also `Mailer` is responsable to `notifyClients()` and we separated `ProductService` to make it easier to reuse somewhere else and not depend on `ProductBloc` for all our cases.
 
-### How to know when is not being?
+### How to know when is not being applied?
 - Too generic names and very generic modules
 - Changes in code that usually affect clases or modules
 - Classes with multiple layers
@@ -195,12 +195,231 @@ const { data } = await this.http.get("some url");
 
 Also we can conclude that SRP and OCP are very related.
 
-### How to know when is not being?
+### How to know when is not being applied?
 - Changes usually affect our class or module
 - When a class or module have a lot of layers. (Presentation, storage, etc) 
 
 ## __Liskov Substitution Principle (LSP)__
 Being `U` a subtype of `T`, any instance of `T` should be substitute by any instance of `U` without altering the system properties. Basically `U ⊆ T`, and if you want to use an instance of `U` and `T` in `T` it's should work without altering its properties.
+
+Keep in mind that the Liskov substitution principle it's about applying to types in more general context, not only inheritance. For example if we have the `interface Shape` that has an abstract function called `area(): number`. Now we can `implement` `Shape` to a class `Rectangle` with its own custom properties and just apply the contract; and same with other shapes like `Square`, and it's types are going to be the same for all shapes.
+```ts
+// Base Type: Shape
+interface Shape {
+  area(): number;
+}
+
+// Concrete Type: Rectangle
+class Rectangle implements Shape {
+  constructor(private width: number, private height: number) {}
+
+  area(): number {
+    return this.width * this.height;
+  }
+}
+
+// Concrete Type: Square
+class Square implements Shape {
+  constructor(private side: number) {}
+
+  area(): number {
+    return this.side * this.side;
+  }
+}
+
+// Function that uses Shape
+function printArea(shape: Shape): void {
+  console.log(`Area: ${shape.area()}`);
+}
+
+// Example usage
+const shapes: Shape[] = [
+  new Rectangle(5, 10),
+  new Square(4),
+];
+
+shapes.forEach(shape => printArea(shape));
+```
+
+This is another example were we can use a __normal class__ for this principle.
+```mermaid
+classDiagram
+    class Vehicle {
+        +getSpeed(): int
+        +getCubicCapacity(): int
+    }
+
+    class Car {
+        +getSpeed(): int
+        +getCubicCapacity(): int
+        +isHatchBack(): boolean
+    }
+
+    class Bus {
+        +getSpeed(): int
+        +getCubicCapacity(): int
+        +getEmergencyExitLoc(): String
+    }
+
+    Vehicle <|-- Car
+    Vehicle <|-- Bus
+```
+
+```ts
+  const bus: Vehicle = new Bus(100, 5000, "Back Left");
+  const car: Vehicle = new Car(120, 3000, true);
+```
+But also we can use an __abstract class__ too
+```mermaid
+classDiagram
+    class Vehicle {
+        <<abstract>>
+        +getSpeed(): int
+        +getCubicCapacity(): int
+    }
+
+    class Car {
+        +getSpeed(): int
+        +getCubicCapacity(): int
+        +isHatchBack(): boolean
+    }
+
+    class Bus {
+        +getSpeed(): int
+        +getCubicCapacity(): int
+        +getEmergencyExitLoc(): String
+    }
+
+    Vehicle <|-- Car
+    Vehicle <|-- Bus
+```
+```ts
+  const bus: Vehicle = new Bus(100, 5000, "Back Left");
+  const car: Vehicle = new Car(120, 3000, true);
+```
+
+### How to know when is not being applied?
+- When we modify parents original behavior.
+  ```ts
+  class Bird {
+    fly(){
+      console.log('Flying')
+    }
+  }
+
+  class Penguin extends Bird {
+    fly(){
+      throw new Error(`Penguins can't fly`)
+    }
+  }
+  ```
+
+  When what we actually should to it's to use an abstract class and this even allow us to add more birds easily.
+  ```mermaid
+  classDiagram
+    class Bird {
+        <<abstract>>
+        +fly(): void
+    }
+
+    class Sparrow {
+        +fly(): void
+    }
+
+    
+    class Penguin {
+        +fly(): void
+    }
+
+    Bird <|-- Sparrow
+    Bird <|-- Penguin
+    ```
+
+    ```ts
+    abstract class Bird {
+      abstract fly(): void; // Contract for flying birds
+    }
+
+    class Sparrow extends Bird {
+      fly() {
+        console.log('Sparrow flying');
+      }
+    }
+
+    class Penguin extends Bird {
+      fly() {
+        console.log('Penguins cannot fly'); // Alternative behavior
+      }
+    }
+    ```
+
+- When we add additional restrictions to the code.
+  ```ts
+  class Car {
+    drive(speed: number) {
+      console.log(`Driving at ${speed} km/h`)
+    }
+  }
+
+  class ElectricCar extends Car{
+    drive(speed: number){
+      if(speed > 120){
+        throw new Error(`Electric cars cannot exceed 120 km/h`)
+      }
+      console.log(`Driving at ${speed} km/h`)
+    }
+  }
+  ```
+- When we add unexpected behavior to the child classes
+  ```ts
+  class Car {
+    getNumberOfSeats(): number {
+      return 5;
+    }
+  }
+
+  class Audi extends Car {
+    // Here it's being broken the principle, since broken the logic of the parent class
+    constructor(private numberOfSeats: number, private musicSystem: string) {
+      super();
+    }
+
+    getNumberOfSeats(): number {
+      return this.numberOfSeats;
+    }
+
+    // Here too
+    playMusic() {
+      console.log(`Playing music: ${this.musicSystem}`);
+    }
+  }
+
+  class Toyota extends Car {
+    // Here it's being broken the principle, since broken the logic of the parent class
+    constructor(private numberOfSeats: number, private wheels: number) {
+      super();
+    }
+
+    getNumberOfSeats(): number {
+      return this.numberOfSeats;
+    }
+
+    // Here too
+    getWheels() {
+      return this.wheels;
+    }
+  }
+  ```
+
+  It would be better just to implement an `abstract` class that makes certain behaviors optional.
+  ```ts
+    abstract class Car {
+    abstract getNumberOfSeats(): number; // Make it an abstract method
+
+    // Optional method to play music, so it's not mandatory for all cars
+    playMusic?(): void; 
+  }
+  ```
 
 ## __Interface Segregation Principle (ISP)__
 ## __Dependency Inversion Principle (DIP)__
