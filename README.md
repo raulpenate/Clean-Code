@@ -68,7 +68,137 @@ You can see where that now `CartBloc` is being responsable to handle `onAddToCar
 - High number of importations
 - High number of public methods
 - Excessive number of code lines
+
 ## __Open/Closed Principle (OCP)__
+This principle implies that software entities(clases, modules, methods, etc) __must be open for extension and close for modification__.  
+
+In the next code we've classes consume data from an API, we've applied the SRP, so we've different services.
+```ts
+import { PhotosService, PostService, TodoService } from './services';
+
+    const todoService = new TodoService();
+    const postService = new PostService();
+    const photosService = new PhotosService();
+
+    const todos = await todoService.getTodoItems();
+    const posts = await postService.getPosts();
+    const photos = await photosService.getPhotos();
+```
+But the issue is that we're using a library to consume those endpoints, let's say we want to  migrate to fetch, we'd have to change every class. And let's say that maybe we want to comeback to `axios` again in the future so we'd have to implement it in very class again.
+
+```ts
+import axios from 'axios';
+
+export class TodoService { 
+    async getTodoItems() {
+        const { data } = await axios.get('https://jsonplaceholder.typicode.com/todos/');
+        return data;
+    }
+}
+
+export class PostService {
+    async getPosts() {
+        const { data } = await axios.get('https://jsonplaceholder.typicode.com/posts');
+        return data;
+    }
+}
+
+export class PhotosService {
+    async getPhotos() {
+        const { data } = await axios.get('https://jsonplaceholder.typicode.com/photos');
+        return data;
+    }
+}
+```
+
+So the solution would to create a separate class to implement our library.
+```ts
+import axios from "axios";
+
+export class HttpClient {
+  async get(url: string) {
+    const { data, status } = await axios.get(`${url}`);
+    return data;
+  }
+}
+```
+
+Now we use a DI (Dependency Injection) to also not make it tightly coupled and implement our `HttpClient`.
+
+```ts
+import axios from "axios";
+import { HttpClient } from "./HttpClient";
+
+export class TodoService {
+  constructor(private http: HttpClient) {}
+
+  async getTodoItems() {
+    const { data } = await this.http.get(
+      "https://jsonplaceholder.typicode.com/todos/"
+    );
+    return data;
+  }
+}
+
+export class PostService {
+  constructor(private http: HttpClient) {}
+
+  async getPosts() {
+    const { data } = await this.http.get(
+      "https://jsonplaceholder.typicode.com/posts"
+    );
+    return data;
+  }
+}
+
+export class PhotosService {
+  constructor(private http: HttpClient) {}
+
+  async getPhotos() {
+    const { data } = await this.http.get(
+      "https://jsonplaceholder.typicode.com/photos"
+    );
+    return data;
+  }
+}
+```
+
+We've to implement it when we instantiate a class. 
+```ts
+const http = new HttpClient();
+
+const todoService = new TodoService(http);
+const postService = new PostService(http);
+const photosService = new PhotosService(http);
+```
+
+And now in the future we want to migrate to `fetch` we can do it very simple, like this.
+```ts
+export class HttpClient {
+  async get(url: string) {
+    const resp = await fetch(`${url}`);
+    const data = await resp.json();
+
+    return data;
+  }
+}
+```
+
+And our classes won't be affected by this change!! Since we applied a DI and we use `this.http.get` to consume the API.
+```ts
+constructor(private http: HttpClient) {}
+```
+
+```ts
+const { data } = await this.http.get("some url");
+```
+
+Also we can conclude that SRP and OCP are very related.
+
+### How to know when is not being?
+- Changes usually affect our class or module
+- When a class or module have a lot of layers. (Presentation, storage, etc) 
+
 ## __Liskov Substitution Principle (LSP)__
 ## __Interface Segregation Principle (ISP)__
 ## __Dependency Inversion Principle (DIP)__
