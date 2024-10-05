@@ -200,6 +200,8 @@ Also we can conclude that SRP and OCP are very related.
 - When a class or module have a lot of layers. (Presentation, storage, etc) 
 
 ## __Liskov Substitution Principle (LSP)__
+Being `U` a subtype of `T`, any instance of `T` should be substitute by any instance of `U` without altering the system properties. Basically `U ⊆ T`, and if you want to use an instance of `U` and `T` in `T` it's should work without altering its properties.
+
 ## __Interface Segregation Principle (ISP)__
 ## __Dependency Inversion Principle (DIP)__
 
