@@ -422,6 +422,114 @@ classDiagram
   ```
 
 ## __Interface Segregation Principle (ISP)__
+This principle reminds us to __no code should be forced to depend on methods that does not use__. Segregation means setting apart from other, and thats what we do the interfaces.
+
+Here it's what happens to a lot of project, they keep scaling and we keep using the same interfaces; and if we don't refactor our interfaces we start to berk this principle.
+```mermaid
+classDiagram
+    class Bird {
+        +fly(): void
+        +eat(): void
+        +run(): void
+        +swim(): void
+    }
+
+    Bird <|-- Tucan
+    Bird <|-- Humminbirg
+    Bird <|-- Ostrich
+    Bird <|-- Pengiun
+
+    class Tucan {
+        +fly(): void
+        +eat(): void
+        +run(): void
+        +swim(): void
+    }
+
+    class Humminbirg {
+        +fly(): void
+        +eat(): void
+        +run(): void
+        +swim(): void
+    }
+
+    class Ostrich {
+        +fly(): void
+        +eat(): void
+        +run(): void
+        +swim(): void
+    }
+
+    class Pengiun {
+        +fly(): void
+        +eat(): void
+        +run(): void
+        +swim(): void
+    }
+
+    note for Tucan "Throws error for swim"
+    note for Humminbirg "Throws error for swim"
+    note for Ostrich "Throws error for fly and swim"
+    note for Pengiun "Throws error for fly"
+```
+
+Now this is when we apply `Interface Segregation Principle`.
+```mermaid
+classDiagram
+    class Bird {
+        +eat(): void
+    }
+
+    class FlyingBird {
+        +fly(): void
+    }
+
+    class SwimmingBird {
+        +swim(): void
+    }
+
+    class RunningBird {
+        +run(): void
+    }
+
+    Bird <|-- Tucan
+    FlyingBird <|-- Tucan
+    RunningBird <|-- Tucan
+
+    Bird <|-- Humminbirg
+    FlyingBird <|-- Humminbirg
+
+    Bird <|-- Ostrich
+    RunningBird <|-- Ostrich
+
+    Bird <|-- Pengiun
+    SwimmingBird <|-- Pengiun
+
+    class Tucan {
+        +fly(): void
+        +eat(): void
+        +run(): void
+    }
+
+    class Humminbirg {
+        +fly(): void
+        +eat(): void
+    }
+
+    class Ostrich {
+        +eat(): void
+        +run(): void
+    }
+
+    class Pengiun {
+        +eat(): void
+        +swim(): void
+    }
+  ```
+
+### How to know when is not being applied?
+- If the interfaces we design make us break SRP and LSP.
+
 ## __Dependency Inversion Principle (DIP)__
 
 # Code smells
