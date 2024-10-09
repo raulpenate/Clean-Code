@@ -531,6 +531,72 @@ classDiagram
 - If the interfaces we design make us break SRP and LSP.
 
 ## __Dependency Inversion Principle (DIP)__
+> __“The Dependency Inversion Principle (DIP) tells us that the most flexible systems are those in which source code dependencies refer only to abstractions, not to concretions.”__  
+> _— Robert C. Martin, *Clean Architecture: A Craftsman's Guide to Software Structure and Design*_
+
+It states that high-level modules, which contain the core logic of the application, should not directly depend on low-level modules that perform specific tasks. Instead, both should depend on abstractions like interfaces. This separation of concerns allows developers to keep the complex parts of their code independent from the details of how specific tasks are accomplished, making it easier to adapt and change the system as needed.
+
+Key concepts to understand here are that when we refer to an **abstraction**, we're talking about an `interface` or `abstract` class. In contrast, when we mention **concretions**, we mean the specific instances of classes created in our code, which can lead to high coupling between components. So It's better to use a __Dependency Inversion__ for those cases.
+
+Here is an example of using `PostProvider` to be the important abstraction to be used in each or our `PosService` classes. Instead of having different function for each Service, which would cause high coupling and we would be depending upon a low-level dependency.
+```mermaid
+classDiagram
+    direction TB
+
+    class Post {
+        +number id
+        +string title
+        +string body
+        +number userId
+    }
+
+    class PostProvider {
+        <<interface>>
+        +getFakePosts(): Promise<Post[]>
+    }
+
+    class PostService {
+        -Post[] posts
+        +getPosts(): Promise<Post[]>
+    }
+
+    class LocalDataBaseService {
+        +getFakePosts(): Promise<Post[]>
+    }
+
+    class JsonDataBaseService {
+        +getFakePosts(): Promise<Post[]>
+    }
+
+    class ApiService {
+        +getFakePosts(): Promise<Post[]>
+    }
+
+    PostService --> PostProvider : uses
+    LocalDataBaseService ..|> PostProvider
+    JsonDataBaseService ..|> PostProvider
+    ApiService ..|> PostProvider
+
+    PostService --> LocalDataBaseService : uses
+    PostService --> JsonDataBaseService : uses
+    PostService --> ApiService : uses
+```
+
+This means that instead of high-level components, like a `PostService`, directly depending on specific data providers (like `LocalDataBaseService`, `JsonDataBaseService`, or `ApiService`), they should depend on an abstraction, in this case, an interface called `PostProvider`. By doing this, the `PostService` can work with any implementation of `PostProvider`, allowing for greater flexibility and easier maintenance.
+
+For instance, in a system that retrieves posts from various sources, the `PostService` relies on the `PostProvider` interface to fetch posts. Whether it’s pulling from a local database, a JSON file, or an API, the `PostService` remains agnostic to the specific details of these implementations. If a new source of posts is introduced, such as another API or a different database service, you can simply create a new class that implements `PostProvider` without modifying the `PostService`. 
+
+### How to know when is not being applied?
+
+- **High Coupling**: If high-level modules directly instantiate low-level modules, it's a clear indication that DIP is not being applied. For example, a service class creating instances of specific database classes indicates tight coupling.
+
+- **Difficulty in Testing**: If writing unit tests for high-level modules is challenging due to dependencies on concrete implementations, this suggests a violation of DIP. Effective testing often requires mocks or stubs, which are easier with abstractions.
+
+- **Frequent Changes Required**: If changing a low-level module necessitates modifications in high-level modules, this indicates that DIP is not utilized. A well-structured system should allow changes in low-level implementations without affecting high-level logic.
+
+- **Poor Reusability**: When functionality in high-level modules is difficult to reuse across different contexts or applications, it may be due to tight coupling with specific low-level implementations.
+
+- **Violation of Interface Segregation**: If modules depend on interfaces that are too broad or contain irrelevant functionality, it suggests that the principle is not being correctly applied. Each module should depend on a narrow interface tailored to its specific needs.
 
 # Code smells
 The are 6 smells to avoid; remember the acronym `STUPID`:
